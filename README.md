@@ -1,21 +1,19 @@
-### Sample Web Scraping With Electron
+### Google search (web & images) scraping with Electron
 
-This is a simple project to show tips for scraping web pages with an Electron app. 
-It can help you to build a user friendly, portable application with a GUI, to scrape a specific web site.
+![Image](https://github.com/MaksymPylypenko/Google-scraper/blob/main/example.png)
 
-Please read : 
-
-- https://en.jeffprod.com/blog/2019/web-scraping-with-electron/ (EN)
-- https://fr.jeffprod.com/blog/2019/web-scraping-avec-electron/ (FR)
-
-![scraping](scraping.png)
+#### Issues
+* Only the first 100 images have their original links stored in plain text. The rest could be uploaded on demand by clicking on individual images.
+* Some link to original images are deleted. 
+* Ratio of very large images is croped to 1x1. This causes issues with the gallery, since it expects the original width & height.
+* The order of images is vertical (up-->down), this makes poor results appear in the first row (e.g. on the rigth part).
 
 #### Install
 
 Install [NodeJS](https://nodejs.org/) then :
 
 ```bash
-git clone https://github.com/Tazeg/sample-web-scraping-with-electron.git
+git clone git@github.com:MaksymPylypenko/Google-scraper.git
 cd sample-web-scraping-with-electron
 npm install
 npm run start
