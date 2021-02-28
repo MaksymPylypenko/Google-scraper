@@ -8,9 +8,13 @@ img{
 
   } */
 
+  ::-webkit-scrollbar { 
+    display: none; 
+  }
+
   body{
     background-color:  rgb(18, 17, 19);
-    margin:0px;    
+    margin:0px;       
   }
 
 
@@ -143,4 +147,31 @@ img{
 
   .entry-details{
       color:#b6b6b6dc
+  }
+
+
+
+
+  #loader {
+    position:absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    margin:auto;
+    border: 9px solid #ffffff15;
+    border-radius: 50%;
+    border-top: 9px solid #ffffff00;
+    width: 40px;
+    height: 40px;
+    -webkit-animation: spin 2s linear infinite; /* Safari */
+    animation: spin 2s linear infinite;
+  }
+  
+  /* Safari */
+  @-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }

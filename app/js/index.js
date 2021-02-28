@@ -1,6 +1,46 @@
-const cheerio = require('cheerio')
-const { ipcRenderer } = require('electron')
+// UI
 
+const image_btn = document.getElementById("image-option");
+const web_btn = document.getElementById("web-option");
+const img_grid = document.getElementById("img-grid");
+const web_grid = document.getElementById("web-grid");
+var input = document.getElementById("search_input");
+var isImageSearch = true;
+const loader = document.getElementById("loader");
+
+image_btn.addEventListener("click", function(){ 
+    isImageSearch = true;
+    this.classList.add("on");    
+    web_btn.classList.remove("on");
+    web_grid.classList.add("hide");
+    img_grid.classList.remove("hide");
+});
+
+web_btn.addEventListener("click", function(){ 
+    isImageSearch = false;
+    this.classList.add("on");
+    image_btn.classList.remove("on");
+    img_grid.classList.add("hide");
+    web_grid.classList.remove("hide");   
+});
+
+input.addEventListener("keyup", function(event) {
+    if (event.key == "Enter") {
+        console.log(input.value); // need to replace spaces with 
+        //&start=20 
+        var count = 20;
+        var num = "&num="+count;
+        var mod = isImageSearch? "tbm=isch&" : "";       
+        var words = input.value.split(' ').join('+');
+        
+        childLoadURL("https://www.google.com/search?"+mod+"q="+words+num);         
+    }      
+});
+
+
+// Extracting html in a child window
+
+const { ipcRenderer } = require('electron')
 var webview = document.createElement('webview');
 
 webview.addEventListener('dom-ready', () => {
@@ -17,67 +57,44 @@ webview.addEventListener('dom-ready', () => {
   })  
 })
 
-var isImageSearch = true;
-var imgGridLoaded = false;
-var webGridLoaded = false;
-const image_btn = document.getElementById("image-option");
-const web_btn = document.getElementById("web-option");
-const img_grid = document.getElementById("img-grid");
-const web_grid = document.getElementById("web-grid");
-var input = document.getElementById("search_input");
-
-image_btn.onclick = function() {
-    isImageSearch = true;
-    this.classList.add("on");    
-    web_btn.classList.remove("on");
-    web_grid.classList.add("hide");
-    img_grid.classList.remove("hide");
-
-    if(!(input.value==="") && !imgGridLoaded){
-        childLoadURL("https://www.google.com/search?tbm=isch&q="+input.value);
-        imgGridLoaded = true;
-    }
-};
-
-web_btn.onclick = function() {
-    isImageSearch = false;
-    this.classList.add("on");
-    image_btn.classList.remove("on");
-    img_grid.classList.add("hide");
-    web_grid.classList.remove("hide");   
-    
-    if(!(input.value==="") && !webGridLoaded){
-        childLoadURL("https://www.google.com/search?q="+input.value);
-        webGridLoaded = true;
-    }
-};
-
-
-input.addEventListener("keyup", function(event) {
-    if (event.key == "Enter") {
-        console.log(input.value); // need to replace spaces with 
-
-        //&start=20 
-        //&num=10
-
-        var mod = isImageSearch? "tbm=isch&" : "";           
-
-        childLoadURL("https://www.google.com/search?"+mod+"q="+input.value);         
-    }      
-});
-
-
-let extractLinks = function (html) {
-    console.log("Start:\n");
-    // console.log(html);
-
+let childLoadURL = function (url) {
     if(isImageSearch){
         img_grid.innerHTML = "";
     }
     else{
         web_grid.innerHTML = ""; 
     }   
-    
+    loader.classList.remove("hide");
+    ipcRenderer.send('scrapeurl', url)
+}
+  
+ipcRenderer.on('extracthtml', (event, html) => {
+    console.log('Extracting html from child window') // hidden
+    extractLinks(html)
+})
+
+
+// Processing extracted html
+
+// https://stackoverflow.com/questions/17267329/converting-unicode-character-to-string-format
+function unicodeToChar(text) {
+return text.replace(/\\u[\dA-F]{4}/gi, 
+    function (match) {
+        return String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16));
+    });
+}
+
+// https://stackoverflow.com/questions/8299742/is-there-a-way-to-convert-html-into-normal-text-without-actually-write-it-to-a-s
+function htmlToText(html) {
+    var temp = document.createElement('div');
+    temp.innerHTML = html;
+    return temp.textContent; // Or return temp.innerText if you need to return only visible text. It's slower.
+}
+
+let extractLinks = function (html) {
+    loader.classList.add("hide");    
+
+    var t0 = performance.now()
 
     if(isImageSearch){
         const regex = /\["https:\/\/(.*)",([1-9][0-9]*),([1-9][0-9]*)]\s,\["https:\/\/(.*)",([1-9][0-9]*),([1-9][0-9]*)]/gm;
@@ -88,15 +105,7 @@ let extractLinks = function (html) {
             if (m.index === regex.lastIndex) {
                 regex.lastIndex++;
             }
-           
-            // https://stackoverflow.com/questions/17267329/converting-unicode-character-to-string-format
-            function unicodeToChar(text) {
-                return text.replace(/\\u[\dA-F]{4}/gi, 
-                       function (match) {
-                            return String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16));
-                       });
-            }
-        
+                         
             var img = document.createElement("FIGURE");
             img.setAttribute("itemprop","associatedMedia");
             img.setAttribute("itemtype","http://schema.org/ImageObject");
@@ -107,10 +116,7 @@ let extractLinks = function (html) {
                     <img src="https://`+unicodeToChar(m[1])+`" itemprop="thumbnail"" />
                 </a>`;
 
-            // img.setAttribute("src", "https://"+unicodeToChar(m[1])); // error when using ""
-            // img.setAttribute("width", m[3]);
-            // img.setAttribute("height", m[2]);
-            // img.setAttribute("alt", "n/a");
+            //console.log("Image: "+m[4]);
 
             function addRightClickEvent(elem, source){ 
                 elem.addEventListener('contextmenu', function(ev) {
@@ -125,280 +131,68 @@ let extractLinks = function (html) {
                 });    
             }
             addRightClickEvent(img, "https://" + m[4]);           
-            img_grid.appendChild(img);
-    
-            img.onerror = function () {
-                //this.src = 'https://www.minculture.gov.ma/fr/wp-content/themes/mculture/images/no-img.jpg'; // place your error.png image instead
-                this.remove();
-            };
-
+            img_grid.appendChild(img);    
         }
 
         // gallery
         initPhotoSwipeFromDOM('.my-gallery');
     }
     else{
-        // loading the HTML code
-        const $ = cheerio.load(html)
+        const regex = /<div class="yuRUbf"><a href="(.*?)"|<h3 class="LC20lb DKV0Md"><span>(.*?)<\/span>|<span class="aCOpRe"><span>(.*?)<\/span>|<span class="aCOpRe"><span class="f">(.*?)<\/span><span>(.*?)<\/span>/gm;
 
-        // for each link <a href=...></a>
-        $('.tF2Cxc').each((i, element) => {
- 
-            const detail = $(element).find('.aCOpRe').text(); 
-            const a = $(element).find('.yuRUbf').children().first();
-            const url = a.attr("href"); 
-            const title = a.children().eq(1).text(); // or $(element).find('.LC20lb').text(); 
+        let m;
 
-            console.log("Title: "+title);
-            console.log("Detail: "+detail);
-            console.log("url: "+url);
+        // the normal order of groups: 1,2,3
+        // however, if group 3 is null, use group 5 instead
 
-            let div = document.createElement('div');
-            div.classList.add('entry');          
-      
-            let entry_title = document.createElement('div');
-            entry_title.classList.add('entry-title');
-            entry_title.innerText = title;
+        var num = 1;
+        var url;
+        var title;
+        var detail;
+           
+        while ((m = regex.exec(html)) !== null) {
+            // This is necessary to avoid infinite loops with zero-width matches
+            if (m.index === regex.lastIndex) {
+                regex.lastIndex++;
+            }
+            if(m[1]!=null){
+                url = m[1];
+            }
+            else if(m[2]!=null){
+                title = num+". "+m[2];
+                num+=1;
+            }
+            else{
+                detail = htmlToText((m[3]!=null) ? m[3]:m[5]);
 
-            let entry_details = document.createElement('div');
-            entry_details.classList.add('entry-details');
-            entry_details.innerText = detail;
+                console.log("Title: "+title);
+                console.log("Detail: "+detail);
+                console.log("url: "+url);    
 
-            div.appendChild(entry_title);
-            div.appendChild(entry_details);
-
-            div.addEventListener('click', function() {
-                const shell = require('electron').shell;
-                shell.openExternal(url);
-            }, false);
-
-            web_grid.appendChild(div);            
-        })
+                let div = document.createElement('div');
+                div.classList.add('entry');          
+          
+                let entry_title = document.createElement('div');
+                entry_title.classList.add('entry-title');
+                entry_title.innerText = title;
+    
+                let entry_details = document.createElement('div');
+                entry_details.classList.add('entry-details');
+                entry_details.innerText = detail;
+    
+                div.appendChild(entry_title);
+                div.appendChild(entry_details);
+    
+                div.addEventListener('click', function() {
+                    const shell = require('electron').shell;
+                    shell.openExternal(url);
+                }, false);
+    
+                web_grid.appendChild(div);   
+            }        
+        }
     }
 
-    isImageSearch ? imgGridLoaded=true : webGridLoaded=true;  
+    var t1 = performance.now()
+    console.log("Processing HTML took " + (t1 - t0) + " milliseconds.")
 }
-
-let childLoadURL = function (url) {
-  ipcRenderer.send('scrapeurl', url)
-}
-
-ipcRenderer.on('extracthtml', (event, html) => {
-  console.log('extract html given by child window')
-  extractLinks(html)
-})
-
-
-
-// Gallery
-// https://photoswipe.com/documentation/getting-started.html
-
-var initPhotoSwipeFromDOM = function(gallerySelector) {
-
-    // parse slide data (url, title, size ...) from DOM elements 
-    // (children of gallerySelector)
-    var parseThumbnailElements = function(el) {
-        var thumbElements = el.childNodes,
-            numNodes = thumbElements.length,
-            items = [],
-            figureEl,
-            linkEl,
-            size,
-            item;
-
-        for(var i = 0; i < numNodes; i++) {
-
-            figureEl = thumbElements[i]; // <figure> element
-
-            // include only element nodes 
-            if(figureEl.nodeType !== 1) {
-                continue;
-            }
-
-            linkEl = figureEl.children[0]; // <a> element
-
-            size = linkEl.getAttribute('data-size').split('x');
-
-            // create slide object
-            item = {
-                src: linkEl.getAttribute('href'),
-                w: parseInt(size[0], 10),
-                h: parseInt(size[1], 10)
-            };
-
-
-
-            if(figureEl.children.length > 1) {
-                // <figcaption> content
-                item.title = figureEl.children[1].innerHTML; 
-            }
-
-            if(linkEl.children.length > 0) {
-                // <img> thumbnail element, retrieving thumbnail url
-                item.msrc = linkEl.children[0].getAttribute('src');
-            } 
-
-            item.el = figureEl; // save link to element for getThumbBoundsFn
-            items.push(item);
-        }
-
-        return items;
-    };
-
-    // find nearest parent element
-    var closest = function closest(el, fn) {
-        return el && ( fn(el) ? el : closest(el.parentNode, fn) );
-    };
-
-    // triggers when user clicks on thumbnail
-    var onThumbnailsClick = function(e) {
-        e = e || window.event;
-        e.preventDefault ? e.preventDefault() : e.returnValue = false;
-
-        var eTarget = e.target || e.srcElement;
-
-        // find root element of slide
-        var clickedListItem = closest(eTarget, function(el) {
-            return (el.tagName && el.tagName.toUpperCase() === 'FIGURE');
-        });
-
-        if(!clickedListItem) {
-            return;
-        }
-
-        // find index of clicked item by looping through all child nodes
-        // alternatively, you may define index via data- attribute
-        var clickedGallery = clickedListItem.parentNode,
-            childNodes = clickedListItem.parentNode.childNodes,
-            numChildNodes = childNodes.length,
-            nodeIndex = 0,
-            index;
-
-        for (var i = 0; i < numChildNodes; i++) {
-            if(childNodes[i].nodeType !== 1) { 
-                continue; 
-            }
-
-            if(childNodes[i] === clickedListItem) {
-                index = nodeIndex;
-                break;
-            }
-            nodeIndex++;
-        }
-
-
-
-        if(index >= 0) {
-            // open PhotoSwipe if valid index found
-            openPhotoSwipe( index, clickedGallery );
-        }
-        return false;
-    };
-
-    // parse picture index and gallery index from URL (#&pid=1&gid=2)
-    var photoswipeParseHash = function() {
-        var hash = window.location.hash.substring(1),
-        params = {};
-
-        if(hash.length < 5) {
-            return params;
-        }
-
-        var vars = hash.split('&');
-        for (var i = 0; i < vars.length; i++) {
-            if(!vars[i]) {
-                continue;
-            }
-            var pair = vars[i].split('=');  
-            if(pair.length < 2) {
-                continue;
-            }           
-            params[pair[0]] = pair[1];
-        }
-
-        if(params.gid) {
-            params.gid = parseInt(params.gid, 10);
-        }
-
-        return params;
-    };
-
-    var openPhotoSwipe = function(index, galleryElement, disableAnimation, fromURL) {
-        var pswpElement = document.querySelectorAll('.pswp')[0],
-            gallery,
-            options,
-            items;
-
-        items = parseThumbnailElements(galleryElement);
-
-        // define options (if needed)
-        options = {
-
-            // define gallery index (for URL)
-            galleryUID: galleryElement.getAttribute('data-pswp-uid'),
-
-            getThumbBoundsFn: function(index) {
-                // See Options -> getThumbBoundsFn section of documentation for more info
-                var thumbnail = items[index].el.getElementsByTagName('img')[0], // find thumbnail
-                    pageYScroll = window.pageYOffset || document.documentElement.scrollTop,
-                    rect = thumbnail.getBoundingClientRect(); 
-
-                return {x:rect.left, y:rect.top + pageYScroll, w:rect.width};
-            },
-
-            shareButtons: [               
-                {id:'download', label:'Download image', url:'{{raw_image_url}}', download:true}
-            ],
-
-        };
-
-        // PhotoSwipe opened from URL
-        if(fromURL) {
-            if(options.galleryPIDs) {
-                // parse real index when custom PIDs are used 
-                // http://photoswipe.com/documentation/faq.html#custom-pid-in-url
-                for(var j = 0; j < items.length; j++) {
-                    if(items[j].pid == index) {
-                        options.index = j;
-                        break;
-                    }
-                }
-            } else {
-                // in URL indexes start from 1
-                options.index = parseInt(index, 10) - 1;
-            }
-        } else {
-            options.index = parseInt(index, 10);
-        }
-
-        // exit if index not found
-        if( isNaN(options.index) ) {
-            return;
-        }
-
-        if(disableAnimation) {
-            options.showAnimationDuration = 0;
-        }
-
-        // Pass data to PhotoSwipe and initialize it
-        gallery = new PhotoSwipe( pswpElement, PhotoSwipeUI_Default, items, options);
-        gallery.init();
-    };
-
-    // loop through all gallery elements and bind events
-    var galleryElements = document.querySelectorAll( gallerySelector );
-
-    for(var i = 0, l = galleryElements.length; i < l; i++) {
-        galleryElements[i].setAttribute('data-pswp-uid', i+1);
-        galleryElements[i].onclick = onThumbnailsClick;
-    }
-
-    // Parse URL and open gallery if it contains #&pid=3&gid=1
-    var hashData = photoswipeParseHash();
-    if(hashData.pid && hashData.gid) {
-        openPhotoSwipe( hashData.pid ,  galleryElements[ hashData.gid - 1 ], true, true );
-    }
-};
-
-
-
