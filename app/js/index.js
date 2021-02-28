@@ -103,6 +103,18 @@ let extractLinks = function (html) {
             img.setAttribute("width", m[3]);
             img.setAttribute("height", m[2]);
             img.setAttribute("alt", "n/a");
+
+            function addRightClickEvent(elem, source){ 
+                elem.addEventListener('contextmenu', function(ev) {
+                    var link = document.createElement('a');
+                    link.href = source;
+                    link.download = 'Download.jpg';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);    
+                });    
+            }
+            addRightClickEvent(img, "https://" + m[4]);           
             img_grid.appendChild(img);
     
             img.onerror = function () {
@@ -162,5 +174,3 @@ ipcRenderer.on('extracthtml', (event, html) => {
   console.log('extract html given by child window')
   extractLinks(html)
 })
-
-
