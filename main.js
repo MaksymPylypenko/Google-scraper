@@ -41,7 +41,7 @@ app.on('ready', function () {
       center: true,
       minWidth: 800,
       minHeight: 600,
-      show: true,
+      show: false, // set to true for debugging
       webPreferences: {
         nodeIntegration: false, // https://electronjs.org/docs/tutorial/security#2-d%C3%A9sactiver-lint%C3%A9gration-de-nodejs-dans-tous-les-renderers-affichant-des-contenus-distants
         preload: path.join(__dirname, 'app/js/preload.js')
