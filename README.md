@@ -19,7 +19,7 @@ Looking for URL, Title and Description.
 ``` regex
 /<div class="yuRUbf"><a href="(.*?)"|<h3 class="LC20lb DKV0Md"><span>(.*?)<\/span>|<span class="aCOpRe"><span>(.*?)<\/span>/gm
 ```
-However some descriptions have their date of publication included in another <span>. That is why I used 1 more group:
+However some descriptions have their date of publication included in another `<span>`. That is why I used 1 more group:
 ``` regex
 <span class="aCOpRe"><span class="f">(.*?)<\/span><span>(.*?)<\/span>
 ```
