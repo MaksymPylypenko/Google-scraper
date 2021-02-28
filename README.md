@@ -28,8 +28,6 @@ Note, that some descriptions have their date of publication included in another 
 Install [NodeJS](https://nodejs.org/) then :
 
 ```bash
-git clone git@github.com:MaksymPylypenko/Google-scraper.git
-cd sample-web-scraping-with-electron
 npm install
 npm run start
 ```
