@@ -91,6 +91,7 @@ user-select: none; /* Standard */
 
 
 /* https://css-tricks.com/seamless-responsive-photo-grid/ */
+
  
 figure {
   margin: 0;
@@ -99,6 +100,7 @@ figure {
 
 #img-grid {
   padding-top: 2px;
+  margin-right: 8px;
   padding-bottom: 2px;
   line-height: 0;
   -webkit-column-count: 5;

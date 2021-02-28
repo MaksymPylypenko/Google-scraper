@@ -36,7 +36,7 @@ image_btn.addEventListener("click", function() {
   web_btn.classList.remove("on")
   web_grid.classList.add("hide")
   img_grid.classList.remove("hide")
-  page_set.className="hide"
+  page_set.classList.add("hide")
 });
 
 web_btn.addEventListener("click", function() {
@@ -103,7 +103,6 @@ let extractLinks = function(html) {
       img.setAttribute("itemprop", "associatedMedia")
       img.setAttribute("itemtype", "http://schema.org/ImageObject")
       img.setAttribute("itemscope", true)
-      img.className = "grid-item"
 
       img.innerHTML = `          
                 <a href="https://` + m[4] + `" itemprop="contentUrl" data-size="` + m[6] + `x` + m[5] + `">
