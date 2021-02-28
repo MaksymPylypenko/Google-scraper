@@ -1,6 +1,7 @@
 ## Google search scraping in Electron
 Simple image & web scraper by using regex expressions 
 
+![Image](https://github.com/MaksymPylypenko/Google-scraper/blob/main/example.png)
 ## Image scraper
 Looking for low & original resolution of the image.
 ``` regex
@@ -22,7 +23,6 @@ However some descriptions have their date of publication included in another <sp
 ``` regex
 <span class="aCOpRe"><span class="f">(.*?)<\/span><span>(.*?)<\/span>
 ```
-![Image](https://github.com/MaksymPylypenko/Google-scraper/blob/main/example.png)
 
 ### Setup
 Install [NodeJS](https://nodejs.org/) then :
