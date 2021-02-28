@@ -17,14 +17,68 @@ webview.addEventListener('dom-ready', () => {
   })  
 })
 
-var isImageSearch = false;
+var isImageSearch = true;
+
+var imgGridLoaded = false;
+var webGridLoaded = false;
+const image_btn = document.getElementById("image-option");
+const web_btn = document.getElementById("web-option");
+const img_grid = document.getElementById("img-grid");
+const web_grid = document.getElementById("web-grid");
+var input = document.getElementById("search_input");
+
+image_btn.onclick = function() {
+    isImageSearch = true;
+    this.classList.add("on");    
+    web_btn.classList.remove("on");
+    web_grid.classList.add("hide");
+    img_grid.classList.remove("hide");
+
+    if(!(input.value==="") && !imgGridLoaded){
+        childLoadURL("https://www.google.com/search?tbm=isch&q="+input.value);
+        imgGridLoaded = true;
+    }
+};
+
+web_btn.onclick = function() {
+    isImageSearch = false;
+    this.classList.add("on");
+    image_btn.classList.remove("on");
+    img_grid.classList.add("hide");
+    web_grid.classList.remove("hide");   
+    
+    if(!(input.value==="") && !webGridLoaded){
+        childLoadURL("https://www.google.com/search?q="+input.value);
+        webGridLoaded = true;
+    }
+};
+
+
+input.addEventListener("keyup", function(event) {
+    if (event.key == "Enter") {
+        console.log(input.value); // need to replace spaces with 
+
+        //&start=20 
+        //&num=10
+
+        var mod = isImageSearch? "tbm=isch&" : "";           
+
+        childLoadURL("https://www.google.com/search?"+mod+"q="+input.value);         
+    }      
+});
+
 
 let extractLinks = function (html) {
     console.log("Start:\n");
     // console.log(html);
 
-    var grid = document.getElementById("grid");
-    grid.innerHTML = "";
+    if(isImageSearch){
+        img_grid.innerHTML = "";
+    }
+    else{
+        web_grid.innerHTML = ""; 
+    }   
+    
 
     if(isImageSearch){
         const regex = /\["https:\/\/(.*)",([1-9][0-9]*),([1-9][0-9]*)]\s,\["https:\/\/(.*)",([1-9][0-9]*),([1-9][0-9]*)]/gm;
@@ -49,17 +103,13 @@ let extractLinks = function (html) {
             img.setAttribute("width", m[3]);
             img.setAttribute("height", m[2]);
             img.setAttribute("alt", "n/a");
-            grid.appendChild(img);
+            img_grid.appendChild(img);
     
             img.onerror = function () {
                 //this.src = 'https://www.minculture.gov.ma/fr/wp-content/themes/mculture/images/no-img.jpg'; // place your error.png image instead
                 this.remove();
             };
-            
-            // The result can be accessed through the `m`-variable.
-            // m.forEach((match, groupIndex) => {
-            //     console.log(`Found match, group ${groupIndex}: ${match}`);
-            // });
+
         }
     }
     else{
@@ -77,10 +127,31 @@ let extractLinks = function (html) {
             console.log("Title: "+title);
             console.log("Detail: "+detail);
             console.log("url: "+url);
-            
+
+            let div = document.createElement('div');
+            div.classList.add('entry');          
+      
+            let entry_title = document.createElement('div');
+            entry_title.classList.add('entry-title');
+            entry_title.innerText = title;
+
+            let entry_details = document.createElement('div');
+            entry_details.classList.add('entry-details');
+            entry_details.innerText = detail;
+
+            div.appendChild(entry_title);
+            div.appendChild(entry_details);
+
+            div.addEventListener('click', function() {
+                const shell = require('electron').shell;
+                shell.openExternal(url);
+            }, false);
+
+            web_grid.appendChild(div);            
         })
     }
-   
+
+    isImageSearch ? imgGridLoaded=true : webGridLoaded=true;  
 }
 
 let childLoadURL = function (url) {
@@ -93,22 +164,3 @@ ipcRenderer.on('extracthtml', (event, html) => {
 })
 
 
-// Get the input field
-var input = document.getElementById("search_input");
-
-// Execute a function when the user releases a key on the keyboard
-input.addEventListener("keyup", function(event) {
-  // Number 13 is the "Enter" key on the keyboard
-
-    if (event.key == "Enter") {
-        console.log(input.value); // need to replace spaces with 
-        var mod = isImageSearch? "+tbm=isch&" : "";
-
-        //&start=20 
-        //&num=10
-        
-        childLoadURL("https://www.google.com/search?"+mod+"q="+input.value);
-    }   
-    
-  
-});

@@ -1,2 +1,2 @@
 # Google scraper
- scapes google search (web & photo)
+scrapes google search (web & photo)
