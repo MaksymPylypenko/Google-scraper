@@ -67,6 +67,11 @@ img{
 
   /* https://css-tricks.com/seamless-responsive-photo-grid/ */
 
+  figure{
+      margin:0;
+      padding:0;
+  }
+
   #img-grid {    
     padding-top:2px;
     padding-bottom:2px;

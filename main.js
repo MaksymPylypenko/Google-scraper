@@ -22,6 +22,7 @@ app.on('ready', function () {
 
   mainWindow.webContents.openDevTools()
   mainWindow.loadURL(mainUrl)
+  mainWindow.maximize()
 
   mainWindow.webContents.on('dom-ready', function () {
     console.log('user-agent:', mainWindow.webContents.getUserAgent());
@@ -40,7 +41,7 @@ app.on('ready', function () {
       center: true,
       minWidth: 800,
       minHeight: 600,
-      show: false,
+      show: true,
       webPreferences: {
         nodeIntegration: false, // https://electronjs.org/docs/tutorial/security#2-d%C3%A9sactiver-lint%C3%A9gration-de-nodejs-dans-tous-les-renderers-affichant-des-contenus-distants
         preload: path.join(__dirname, 'app/js/preload.js')
