@@ -4,11 +4,6 @@ img {
   margin: 2px 4px;
 }
 
-
-/* img:hover{
-
-  } */
-
  ::-webkit-scrollbar {
   display: none;
 }
@@ -20,9 +15,9 @@ body {
   margin: 0px;
 
   -webkit-user-select: none; /* Safari */        
--moz-user-select: none; /* Firefox */
--ms-user-select: none; /* IE10+/Edge */
-user-select: none; /* Standard */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+/Edge */
+  user-select: none; /* Standard */
 }
 
 .fa {
@@ -37,6 +32,7 @@ user-select: none; /* Standard */
 .on,
 .fa:hover {
   filter: opacity(100%);
+  cursor: pointer;
 }
 
 .hide {

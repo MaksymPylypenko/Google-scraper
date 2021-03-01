@@ -110,20 +110,18 @@ let extractLinks = function(html) {
                 </a>`;
 
       //console.log("Image: "+m[4]);
+  
+      img.addEventListener('contextmenu', function(ev) {
+        ev.preventDefault()
+        var link = document.createElement('a')
+        link.href = "https://" + m[4]
+        link.download = 'Download.jpg'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        return false
+      })      
 
-      function addRightClickEvent(elem, source) {
-        elem.addEventListener('contextmenu', function(ev) {
-          ev.preventDefault()
-          var link = document.createElement('a')
-          link.href = source
-          link.download = 'Download.jpg'
-          document.body.appendChild(link)
-          link.click()
-          document.body.removeChild(link)
-          return false
-        })
-      }
-      addRightClickEvent(img, "https://" + m[4])
       img_grid.appendChild(img)
 
     }
