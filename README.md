@@ -11,7 +11,7 @@ npm run start
 
 ![Image](https://github.com/MaksymPylypenko/Google-scraper/blob/main/example.png)
 ## Image scraper
-Looking for low & original resolution of the image.
+Looking for low & original resolutions of the image.
 ``` regex
 /\["https:\/\/(.*)",([1-9][0-9]*),([1-9][0-9]*)]\s,\["https:\/\/(.*)",([1-9][0-9]*),([1-9][0-9]*)]/gm
 ```
