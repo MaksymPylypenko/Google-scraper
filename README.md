@@ -34,4 +34,4 @@ Note, that some descriptions have their date of publication included in another 
 
 ## Other issues
 * Some links to original images are deleted. 
-* Very large images are sometimes cropped to 1x1 ratio. This may break a full screen view, because the gallery requires original width & height during the initialization.
+* Google sometimes crops very large images to 1x1 ratio. This may break a full screen view, because the gallery requires original width & height during the initialization.
